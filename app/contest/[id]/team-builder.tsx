@@ -10,7 +10,7 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -289,7 +289,11 @@ export default function TeamBuilderScreen() {
         </View>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Search Input */}
         <View style={styles.searchContainer}>
           <TextInput
@@ -334,13 +338,11 @@ export default function TeamBuilderScreen() {
         {searchResults.length > 0 && (
           <View style={styles.resultsContainer}>
             <Text style={styles.resultsLabel}>Search Results</Text>
-            <FlatList
-              data={searchResults}
-              renderItem={renderSearchResult}
-              keyExtractor={(item) => `${item.symbol}-${item.exchange}`}
-              style={styles.resultsList}
-              keyboardShouldPersistTaps="handled"
-            />
+            {searchResults.map((item) => (
+              <View key={`${item.symbol}-${item.exchange}`}>
+                {renderSearchResult({ item })}
+              </View>
+            ))}
           </View>
         )}
 
@@ -401,7 +403,7 @@ export default function TeamBuilderScreen() {
           onCancel={() => setShowConfirmDialog(false)}
           confirmColor="#006e1c"
         />
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -526,7 +528,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   resultsContainer: {
-    maxHeight: 640,
     marginBottom: 16,
   },
   resultsLabel: {
@@ -534,9 +535,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text.primary,
     marginBottom: 8,
-  },
-  resultsList: {
-    flex: 1,
   },
   searchResultItem: {
     flexDirection: 'row',

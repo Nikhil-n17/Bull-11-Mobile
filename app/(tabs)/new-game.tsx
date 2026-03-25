@@ -10,11 +10,12 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { container } from '@/src/core/di/container';
@@ -460,7 +461,11 @@ export default function NewGameScreen() {
         <Text style={styles.subtitle}>Select {MIN_STOCKS}-{MAX_STOCKS} stocks to begin</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Search Input */}
         <View style={styles.searchContainer}>
           <TextInput
@@ -505,13 +510,11 @@ export default function NewGameScreen() {
         {searchResults.length > 0 && (
           <View style={styles.resultsContainer}>
             <Text style={styles.resultsLabel}>Search Results</Text>
-            <FlatList
-              data={searchResults}
-              renderItem={renderSearchResult}
-              keyExtractor={(item) => `${item.symbol}-${item.exchange}`}
-              style={styles.resultsList}
-              keyboardShouldPersistTaps="handled"
-            />
+            {searchResults.map((item) => (
+              <View key={`${item.symbol}-${item.exchange}`}>
+                {renderSearchResult({ item })}
+              </View>
+            ))}
           </View>
         )}
 
@@ -572,7 +575,7 @@ export default function NewGameScreen() {
           onCancel={() => setShowConfirmDialog(false)}
           confirmColor={theme.colors.success.main}
         />
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -679,7 +682,6 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.medium,
   },
   resultsContainer: {
-    maxHeight: 640,
     marginBottom: theme.spacing.margin.betweenCards,
   },
   resultsLabel: {
@@ -687,9 +689,6 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.spacing.sm,
-  },
-  resultsList: {
-    flex: 1,
   },
   searchResultItem: {
     flexDirection: 'row',
