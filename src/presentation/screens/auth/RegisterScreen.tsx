@@ -5,24 +5,29 @@
 
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Alert,
-  TouchableOpacity,
 } from 'react-native';
+import {
+  Box,
+  VStack,
+  Text,
+  Input,
+  Button,
+  Checkbox,
+  ScrollView,
+  Icon,
+  HStack,
+  Progress,
+  Pressable,
+} from 'native-base';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { ErrorText } from '../../components/common/ErrorText';
 import { useAuth } from '../../hooks/useAuth';
 import { PasswordValidator } from '@/src/core/security';
 import type { PasswordValidationResult } from '@/src/core/security';
-import { theme } from '@/src/core/theme';
 
 interface RegisterFormData {
   name: string;
@@ -37,6 +42,7 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState<PasswordValidationResult | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const {
     control,
@@ -70,6 +76,12 @@ export default function RegisterScreen() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
+
+      // Check terms acceptance
+      if (!termsAccepted) {
+        setErrorMessage('Please accept the Terms of Service and Privacy Policy');
+        return;
+      }
 
       // Validate password strength
       const validation = PasswordValidator.validate(data.password);
@@ -113,308 +125,364 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.logo}>📈</Text>
-            <Text style={styles.title}>Bull-11</Text>
-            <Text style={styles.subtitle}>Create Your Account</Text>
-          </View>
-
-          <View style={styles.form}>
-            <Controller
-              control={control}
-              name="name"
-              rules={{
-                required: 'Name is required',
-                minLength: {
-                  value: 2,
-                  message: 'Name must be at least 2 characters',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Full Name"
-                  placeholder="John Doe"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.name?.message}
-                  autoCapitalize="words"
-                  editable={!isLoading}
+        <Box flex={1} bg="coolGray.50" safeArea>
+          <VStack flex={1} justifyContent="center" px={6} py={8} space={8}>
+            {/* Header with Wallet Icon */}
+            <VStack alignItems="center" space={4}>
+              <Box
+                bg="green.700"
+                p={4}
+                borderRadius="2xl"
+                shadow={3}
+              >
+                <Icon
+                  as={MaterialIcons}
+                  name="account-balance-wallet"
+                  size="xl"
+                  color="white"
                 />
-              )}
-            />
+              </Box>
+              <VStack alignItems="center" space={1}>
+                <Text fontSize="3xl" fontWeight="bold" color="coolGray.800">
+                  Bull-11
+                </Text>
+                <Text fontSize="md" color="coolGray.600" textAlign="center" px={4}>
+                  Curate your legacy in Indian Markets. Join the premier BSE/NSE stock fantasy league.
+                </Text>
+              </VStack>
+            </VStack>
 
-            <Controller
-              control={control}
-              name="email"
-              rules={{
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Email"
-                  placeholder="john@example.com"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.email?.message}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  editable={!isLoading}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="password"
-              rules={{
-                required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View>
-                  <Input
-                    label="Password"
-                    placeholder="Enter your password"
-                    value={value}
-                    onChangeText={(text) => {
-                      onChange(text);
-                      handlePasswordChange(text);
+            {/* Registration Form */}
+            <Box bg="white" borderRadius="xl" p={6} shadow={2}>
+              <VStack space={4}>
+                {/* Full Name Field */}
+                <VStack space={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="coolGray.600" textTransform="uppercase">
+                    FULL NAME
+                  </Text>
+                  <Controller
+                    control={control}
+                    name="name"
+                    rules={{
+                      required: 'Name is required',
+                      minLength: {
+                        value: 2,
+                        message: 'Name must be at least 2 characters',
+                      },
                     }}
-                    onBlur={onBlur}
-                    error={errors.password?.message}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoComplete="password"
-                    editable={!isLoading}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        placeholder="Alexander Hamilton"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        isDisabled={isLoading}
+                        autoCapitalize="words"
+                        bg="coolGray.100"
+                        borderColor="transparent"
+                        borderRadius="lg"
+                        py={3}
+                        px={4}
+                        fontSize="md"
+                        _focus={{
+                          bg: 'coolGray.100',
+                          borderColor: 'green.500',
+                          borderWidth: 2,
+                        }}
+                        isInvalid={!!errors.name}
+                      />
+                    )}
                   />
-
-                  {/* Password Strength Indicator */}
-                  {passwordStrength && passwordValue.length > 0 && (
-                    <View style={styles.strengthContainer}>
-                      <View style={styles.strengthBar}>
-                        <View
-                          style={[
-                            styles.strengthFill,
-                            {
-                              width:
-                                passwordStrength.strength === 'weak'
-                                  ? '33%'
-                                  : passwordStrength.strength === 'medium'
-                                  ? '66%'
-                                  : '100%',
-                              backgroundColor: PasswordValidator.getStrengthColor(
-                                passwordStrength.strength
-                              ),
-                            },
-                          ]}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          styles.strengthText,
-                          {
-                            color: PasswordValidator.getStrengthColor(
-                              passwordStrength.strength
-                            ),
-                          },
-                        ]}
-                      >
-                        {passwordStrength.strength.charAt(0).toUpperCase() +
-                          passwordStrength.strength.slice(1)}{' '}
-                        password
-                      </Text>
-                      {passwordStrength.errors.length > 0 && (
-                        <View style={styles.requirementsContainer}>
-                          <Text style={styles.requirementsTitle}>Requirements:</Text>
-                          {passwordStrength.errors.map((error, index) => (
-                            <Text key={index} style={styles.requirementText}>
-                              • {error}
-                            </Text>
-                          ))}
-                        </View>
-                      )}
-                    </View>
+                  {errors.name && (
+                    <Text fontSize="xs" color="red.500">
+                      {errors.name.message}
+                    </Text>
                   )}
-                </View>
-              )}
-            />
+                </VStack>
 
-            <Controller
-              control={control}
-              name="confirmPassword"
-              rules={{
-                required: 'Please confirm your password',
-                validate: (value) =>
-                  value === passwordValue || 'Passwords do not match',
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Confirm Password"
-                  placeholder="Re-enter your password"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.confirmPassword?.message}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  editable={!isLoading}
-                />
-              )}
-            />
+                {/* Email Field */}
+                <VStack space={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="coolGray.600" textTransform="uppercase">
+                    EMAIL ADDRESS
+                  </Text>
+                  <Controller
+                    control={control}
+                    name="email"
+                    rules={{
+                      required: 'Email is required',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: 'Invalid email address',
+                      },
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        placeholder="alex@example.com"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        isDisabled={isLoading}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        bg="coolGray.100"
+                        borderColor="transparent"
+                        borderRadius="lg"
+                        py={3}
+                        px={4}
+                        fontSize="md"
+                        _focus={{
+                          bg: 'coolGray.100',
+                          borderColor: 'green.500',
+                          borderWidth: 2,
+                        }}
+                        isInvalid={!!errors.email}
+                      />
+                    )}
+                  />
+                  {errors.email && (
+                    <Text fontSize="xs" color="red.500">
+                      {errors.email.message}
+                    </Text>
+                  )}
+                </VStack>
 
-            {errorMessage && <ErrorText message={errorMessage} />}
+                {/* Password Field */}
+                <VStack space={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="coolGray.600" textTransform="uppercase">
+                    PASSWORD
+                  </Text>
+                  <Controller
+                    control={control}
+                    name="password"
+                    rules={{
+                      required: 'Password is required',
+                      minLength: {
+                        value: 8,
+                        message: 'Password must be at least 8 characters',
+                      },
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <VStack space={2}>
+                        <Input
+                          placeholder="Enter your password"
+                          value={value}
+                          onChangeText={(text) => {
+                            onChange(text);
+                            handlePasswordChange(text);
+                          }}
+                          onBlur={onBlur}
+                          isDisabled={isLoading}
+                          type="password"
+                          autoCapitalize="none"
+                          autoComplete="password"
+                          bg="coolGray.100"
+                          borderColor="transparent"
+                          borderRadius="lg"
+                          py={3}
+                          px={4}
+                          fontSize="md"
+                          _focus={{
+                            bg: 'coolGray.100',
+                            borderColor: 'green.500',
+                            borderWidth: 2,
+                          }}
+                          isInvalid={!!errors.password}
+                        />
 
-            <Button
-              title={isLoading ? 'Creating Account...' : 'Create Account'}
-              onPress={handleSubmit(onSubmit)}
-              loading={isLoading}
-              disabled={isLoading}
-              style={styles.submitButton}
-            />
+                        {/* Password Strength Indicator */}
+                        {passwordStrength && passwordValue.length > 0 && (
+                          <VStack space={2}>
+                            <Progress
+                              value={
+                                passwordStrength.strength === 'weak'
+                                  ? 33
+                                  : passwordStrength.strength === 'medium'
+                                  ? 66
+                                  : 100
+                              }
+                              colorScheme={
+                                passwordStrength.strength === 'weak'
+                                  ? 'red'
+                                  : passwordStrength.strength === 'medium'
+                                  ? 'yellow'
+                                  : 'green'
+                              }
+                              size="xs"
+                            />
+                            <Text
+                              fontSize="xs"
+                              fontWeight="medium"
+                              color={
+                                passwordStrength.strength === 'weak'
+                                  ? 'red.500'
+                                  : passwordStrength.strength === 'medium'
+                                  ? 'yellow.600'
+                                  : 'green.500'
+                              }
+                            >
+                              {passwordStrength.strength.charAt(0).toUpperCase() +
+                                passwordStrength.strength.slice(1)}{' '}
+                              password
+                            </Text>
+                            {passwordStrength.errors.length > 0 && (
+                              <Box
+                                bg="red.50"
+                                p={2}
+                                borderRadius="md"
+                                borderLeftWidth={3}
+                                borderLeftColor="red.500"
+                              >
+                                <Text fontSize="xs" fontWeight="semibold" color="red.700" mb={1}>
+                                  Requirements:
+                                </Text>
+                                {passwordStrength.errors.map((error, index) => (
+                                  <Text key={index} fontSize="xs" color="red.600">
+                                    • {error}
+                                  </Text>
+                                ))}
+                              </Box>
+                            )}
+                          </VStack>
+                        )}
+                      </VStack>
+                    )}
+                  />
+                  {errors.password && (
+                    <Text fontSize="xs" color="red.500">
+                      {errors.password.message}
+                    </Text>
+                  )}
+                </VStack>
 
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                🔒 Your data is secure and encrypted
-              </Text>
-            </View>
+                {/* Confirm Password Field */}
+                <VStack space={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="coolGray.600" textTransform="uppercase">
+                    CONFIRM
+                  </Text>
+                  <Controller
+                    control={control}
+                    name="confirmPassword"
+                    rules={{
+                      required: 'Please confirm your password',
+                      validate: (value) =>
+                        value === passwordValue || 'Passwords do not match',
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        placeholder="Re-enter your password"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        isDisabled={isLoading}
+                        type="password"
+                        autoCapitalize="none"
+                        bg="coolGray.100"
+                        borderColor="transparent"
+                        borderRadius="lg"
+                        py={3}
+                        px={4}
+                        fontSize="md"
+                        _focus={{
+                          bg: 'coolGray.100',
+                          borderColor: 'green.500',
+                          borderWidth: 2,
+                        }}
+                        isInvalid={!!errors.confirmPassword}
+                      />
+                    )}
+                  />
+                  {errors.confirmPassword && (
+                    <Text fontSize="xs" color="red.500">
+                      {errors.confirmPassword.message}
+                    </Text>
+                  )}
+                </VStack>
 
-            <TouchableOpacity
-              style={styles.loginLink}
-              onPress={() => router.back()}
-            >
-              <Text style={styles.loginLinkText}>
-                Already have an account? <Text style={styles.loginLinkBold}>Log In</Text>
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+                {/* Terms and Privacy Checkbox */}
+                <Checkbox
+                  value="terms"
+                  isChecked={termsAccepted}
+                  onChange={setTermsAccepted}
+                  colorScheme="green"
+                  size="sm"
+                >
+                  <Text fontSize="sm" color="coolGray.700">
+                    I agree to the{' '}
+                    <Text fontWeight="semibold" underline>
+                      Terms of Service
+                    </Text>
+                    {' '}and{' '}
+                    <Text fontWeight="semibold" underline>
+                      Privacy Policy
+                    </Text>
+                  </Text>
+                </Checkbox>
+
+                {/* Error Message */}
+                {errorMessage && (
+                  <Box bg="red.50" p={3} borderRadius="md" borderWidth={1} borderColor="red.200">
+                    <Text fontSize="sm" color="red.600">
+                      {errorMessage}
+                    </Text>
+                  </Box>
+                )}
+
+                {/* Sign Up Button */}
+                <Button
+                  onPress={handleSubmit(onSubmit)}
+                  isLoading={isLoading}
+                  isDisabled={isLoading}
+                  bg="green.700"
+                  borderRadius="full"
+                  py={3.5}
+                  _pressed={{ bg: 'green.800' }}
+                  _text={{
+                    fontSize: 'lg',
+                    fontWeight: 'bold',
+                  }}
+                  mt={2}
+                >
+                  {isLoading ? 'Creating Account...' : 'Sign Up'}
+                </Button>
+
+                {/* Security Badge */}
+                <HStack justifyContent="center" space={6} pt={2}>
+                  <VStack alignItems="center" space={1}>
+                    <Icon as={MaterialIcons} name="security" size="sm" color="coolGray.400" />
+                    <Text fontSize="2xs" color="coolGray.500" textAlign="center">
+                      BANK-{'\n'}GRADE{'\n'}SECURITY
+                    </Text>
+                  </VStack>
+                  <VStack alignItems="center" space={1}>
+                    <Icon as={MaterialIcons} name="lock" size="sm" color="coolGray.400" />
+                    <Text fontSize="2xs" color="coolGray.500" textAlign="center">
+                      256-BIT{'\n'}ENCRYPTED
+                    </Text>
+                  </VStack>
+                </HStack>
+
+                {/* Login Link */}
+                <Pressable onPress={() => router.back()} mt={2}>
+                  <Text fontSize="sm" color="coolGray.600" textAlign="center">
+                    Already part of the collective?{' '}
+                    <Text fontWeight="bold" color="coolGray.800">
+                      Login
+                    </Text>
+                  </Text>
+                </Pressable>
+              </VStack>
+            </Box>
+          </VStack>
+        </Box>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.default,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: theme.spacing.padding.screen,
-  },
-  content: {
-    maxWidth: 400,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.margin.betweenSections,
-  },
-  logo: {
-    fontSize: theme.typography.fontSize['7xl'],
-    marginBottom: theme.spacing.margin.headingBottom,
-  },
-  title: {
-    ...theme.typography.textStyles.h1,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.lg,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.typography.fontWeight.medium,
-  },
-  form: {
-    backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.spacing.borderRadius.lg,
-    padding: theme.spacing.padding.cardLarge,
-    ...theme.spacing.shadows.base,
-  },
-  strengthContainer: {
-    marginTop: theme.spacing.spacing.sm,
-  },
-  strengthBar: {
-    height: 4,
-    backgroundColor: theme.colors.border.light,
-    borderRadius: theme.spacing.borderRadius.sm,
-    overflow: 'hidden',
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  strengthFill: {
-    height: '100%',
-    borderRadius: theme.spacing.borderRadius.sm,
-  },
-  strengthText: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
-    marginBottom: theme.spacing.spacing.sm,
-  },
-  requirementsContainer: {
-    marginTop: theme.spacing.spacing.sm,
-    padding: theme.spacing.padding.cardSmall,
-    backgroundColor: theme.colors.error.bg,
-    borderRadius: theme.spacing.borderRadius.base,
-    borderLeftWidth: theme.spacing.borderWidth.thick,
-    borderLeftColor: theme.colors.error.light,
-  },
-  requirementsTitle: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.error.dark,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  requirementText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.error.dark,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  submitButton: {
-    marginTop: theme.spacing.padding.cardLarge,
-  },
-  infoBox: {
-    marginTop: theme.spacing.margin.betweenElements,
-    padding: theme.spacing.padding.cardSmall,
-    backgroundColor: theme.colors.info.bg,
-    borderRadius: theme.spacing.borderRadius.base,
-    borderWidth: theme.spacing.borderWidth.thin,
-    borderColor: theme.colors.info.light,
-  },
-  infoText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.info.dark,
-    fontWeight: theme.typography.fontWeight.medium,
-    textAlign: 'center',
-  },
-  loginLink: {
-    marginTop: theme.spacing.margin.betweenElements,
-    alignItems: 'center',
-  },
-  loginLinkText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-  },
-  loginLinkBold: {
-    color: theme.colors.primary.main,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-});

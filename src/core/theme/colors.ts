@@ -103,7 +103,7 @@ export const neutral = {
  * Semantic background colors for different surfaces
  */
 export const background = {
-  default: '#F3F4F6',   // Default app background (gray100)
+  default: '#fafaf7',   // Warm off-white background (premium paper tone)
   paper: '#FFFFFF',     // Cards, modals, elevated surfaces
   alt: '#F5F5F5',       // Alternative background
   disabled: '#E9ECEF',  // Disabled elements background
@@ -114,8 +114,8 @@ export const background = {
  * Semantic text colors following contrast guidelines
  */
 export const text = {
-  primary: '#1F2937',   // Primary text (gray800)
-  secondary: '#6B7280', // Secondary text (gray500)
+  primary: '#1a1c1c',   // Primary text (Stitch on-surface)
+  secondary: '#5a666d', // Secondary text (Stitch on-surface-variant)
   disabled: '#9CA3AF',  // Disabled text (gray400)
   hint: '#999999',      // Placeholder/hint text
   inverse: '#FFFFFF',   // Text on dark backgrounds

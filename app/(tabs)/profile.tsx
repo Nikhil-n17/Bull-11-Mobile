@@ -5,20 +5,15 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
   Alert,
+  StyleSheet,
 } from 'react-native';
+import { Box, VStack, HStack, Text, Badge, Button, ScrollView, Center } from 'native-base';
 import { useRouter } from 'expo-router';
-import { Card } from '@/src/presentation/components/common/Card';
 import { container } from '@/src/core/di/container';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
 import type { User } from '@/src/domain/entities/User';
-import { theme } from '@/src/core/theme';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -68,7 +63,10 @@ export default function ProfileScreen() {
       // Clear all auth state
       await logout();
 
-      // Direct navigation to login screen
+      // Wait for state to clear
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Force navigation to login with reset
       router.replace('/auth/login');
     } catch (error) {
       Alert.alert('Logout Failed', 'Could not logout. Please try again.');
@@ -86,248 +84,154 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary.main} />
-        <Text style={styles.loadingText}>Loading profile...</Text>
-      </View>
+      <Center flex={1} bg="coolGray.50">
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text mt={4} fontSize="md" color="coolGray.600">
+          Loading profile...
+        </Text>
+      </Center>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
-        <Text style={styles.subtitle}>Manage your account</Text>
-      </View>
+    <Box flex={1} bg="coolGray.50">
+      {/* Header */}
+      <Box bg="secondary.500" pt={16} pb={6} px={4}>
+        <Text fontSize="2xl" fontWeight="bold" color="white" mb={1}>
+          Profile
+        </Text>
+        <Text fontSize="md" color="secondary.200">
+          Manage your account
+        </Text>
+      </Box>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {/* User Info Card */}
-        <Card>
-          <View style={styles.section}>
-            <View style={styles.avatarContainer}>
-              <Text style={styles.avatar}>
-                {userData?.name?.charAt(0).toUpperCase() || '?'}
-              </Text>
-            </View>
+      <ScrollView>
+        <VStack space={4} p={4}>
+          {/* User Info Card */}
+          <Box bg="white" borderRadius="lg" p={6} shadow={2}>
+            <VStack space={4} alignItems="center">
+              {/* Avatar Circle */}
+              <Center
+                w={20}
+                h={20}
+                borderRadius="full"
+                bg="secondary.500"
+                mb={2}
+              >
+                <Text fontSize="4xl" fontWeight="bold" color="white">
+                  {userData?.name?.charAt(0).toUpperCase() || '?'}
+                </Text>
+              </Center>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name</Text>
-              <Text style={styles.infoValue}>{userData?.name || 'N/A'}</Text>
-            </View>
+              {/* User Info Rows */}
+              <VStack space={3} w="full">
+                <HStack justifyContent="space-between" alignItems="center" py={3} borderBottomWidth={1} borderBottomColor="coolGray.200">
+                  <Text fontSize="md" color="coolGray.600" fontWeight="medium">
+                    Name
+                  </Text>
+                  <Text fontSize="md" color="coolGray.800" fontWeight="semibold">
+                    {userData?.name || 'N/A'}
+                  </Text>
+                </HStack>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{userData?.email || 'N/A'}</Text>
-            </View>
+                <HStack justifyContent="space-between" alignItems="center" py={3} borderBottomWidth={1} borderBottomColor="coolGray.200">
+                  <Text fontSize="md" color="coolGray.600" fontWeight="medium">
+                    Email
+                  </Text>
+                  <Text fontSize="md" color="coolGray.800" fontWeight="semibold">
+                    {userData?.email || 'N/A'}
+                  </Text>
+                </HStack>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Role</Text>
-              <View style={[
-                styles.roleBadge,
-                userData?.role === 'ADMIN' ? styles.adminBadge : styles.userBadge
-              ]}>
-                <Text style={styles.roleText}>{userData?.role || 'USER'}</Text>
-              </View>
-            </View>
+                <HStack justifyContent="space-between" alignItems="center" py={3} borderBottomWidth={1} borderBottomColor="coolGray.200">
+                  <Text fontSize="md" color="coolGray.600" fontWeight="medium">
+                    Role
+                  </Text>
+                  <Badge
+                    colorScheme={userData?.role === 'ADMIN' ? 'error' : 'primary'}
+                    variant="solid"
+                    rounded="full"
+                    px={3}
+                    py={1}
+                  >
+                    <Text fontSize="xs" fontWeight="bold" color="white">
+                      {userData?.role || 'USER'}
+                    </Text>
+                  </Badge>
+                </HStack>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Member Since</Text>
-              <Text style={styles.infoValue}>
-                {userData?.createdAt ? formatDate(userData.createdAt) : 'N/A'}
-              </Text>
-            </View>
-          </View>
-        </Card>
+                <HStack justifyContent="space-between" alignItems="center" py={3}>
+                  <Text fontSize="md" color="coolGray.600" fontWeight="medium">
+                    Member Since
+                  </Text>
+                  <Text fontSize="md" color="coolGray.800" fontWeight="semibold">
+                    {userData?.createdAt ? formatDate(userData.createdAt) : 'N/A'}
+                  </Text>
+                </HStack>
+              </VStack>
+            </VStack>
+          </Box>
 
-        {/* Statistics Card */}
-        <Card>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Statistics</Text>
+          {/* Statistics Card */}
+          <Box bg="white" borderRadius="lg" p={6} shadow={2}>
+            <Text fontSize="lg" fontWeight="bold" color="coolGray.800" mb={4}>
+              Statistics
+            </Text>
 
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{totalGames}</Text>
-                <Text style={styles.statLabel}>Total Games</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+            <HStack space={4} justifyContent="space-around">
+              {/* Total Games Stat */}
+              <Box flex={1} bg="coolGray.100" borderRadius="md" p={4} alignItems="center">
+                <Text fontSize="xs" color="coolGray.600" fontWeight="medium" mb={2}>
+                  TOTAL GAMES
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="secondary.500">
+                  {totalGames}
+                </Text>
+              </Box>
+
+              {/* Days Active Stat */}
+              <Box flex={1} bg="coolGray.100" borderRadius="md" p={4} alignItems="center">
+                <Text fontSize="xs" color="coolGray.600" fontWeight="medium" mb={2}>
+                  DAYS ACTIVE
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="secondary.500">
                   {userData?.createdAt
                     ? Math.floor((Date.now() - new Date(userData.createdAt).getTime()) / (1000 * 60 * 60 * 24))
                     : 0}
                 </Text>
-                <Text style={styles.statLabel}>Days Active</Text>
-              </View>
-            </View>
-          </View>
-        </Card>
+              </Box>
+            </HStack>
+          </Box>
 
-        {/* Logout Button */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          disabled={loggingOut}
-        >
-          {loggingOut ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          )}
-        </TouchableOpacity>
+          {/* Logout Button */}
+          <Button
+            onPress={handleLogout}
+            isDisabled={loggingOut}
+            bg="error.500"
+            _pressed={{ bg: 'error.600' }}
+            borderRadius="lg"
+            py={4}
+            mt={2}
+          >
+            {loggingOut ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text fontSize="md" fontWeight="semibold" color="white">
+                Logout
+              </Text>
+            )}
+          </Button>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Bull-11 v1.0.0</Text>
-        </View>
+          {/* Footer */}
+          <Center py={6}>
+            <Text fontSize="xs" color="coolGray.500">
+              Bull-11 v1.0.0
+            </Text>
+          </Center>
+        </VStack>
       </ScrollView>
-    </View>
+    </Box>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.default,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.default,
-  },
-  loadingText: {
-    marginTop: theme.spacing.spacing.md,
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-  },
-  header: {
-    paddingTop: theme.spacing.padding.screen + 44, // Extra space for status bar
-    paddingHorizontal: theme.spacing.padding.screen,
-    paddingBottom: theme.spacing.padding.screen,
-    backgroundColor: theme.colors.secondary.main,
-  },
-  title: {
-    fontSize: theme.typography.fontSize['2xl'],
-    fontWeight: theme.typography.fontWeight.bold,
-    color: '#FFFFFF',
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.secondary.light,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingVertical: theme.spacing.padding.screen,
-  },
-  section: {
-    padding: theme.spacing.spacing.xs,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.margin.betweenSections,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.secondary.main,
-    color: '#FFFFFF',
-    fontSize: theme.typography.fontSize['4xl'],
-    fontWeight: theme.typography.fontWeight.bold,
-    textAlign: 'center',
-    lineHeight: 80,
-    overflow: 'hidden',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: theme.spacing.padding.cardSmall,
-    borderBottomWidth: theme.spacing.borderWidth.thin,
-    borderBottomColor: theme.colors.border.light,
-  },
-  infoLabel: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.typography.fontWeight.medium,
-  },
-  infoValue: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.fontWeight.semibold,
-    flex: 1,
-    textAlign: 'right',
-  },
-  roleBadge: {
-    paddingHorizontal: theme.spacing.padding.cardSmall,
-    paddingVertical: theme.spacing.spacing.xs,
-    borderRadius: theme.spacing.borderRadius.full,
-  },
-  adminBadge: {
-    backgroundColor: theme.colors.error.main,
-  },
-  userBadge: {
-    backgroundColor: theme.colors.primary.main,
-  },
-  roleText: {
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: '#FFFFFF',
-  },
-  sectionTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.margin.betweenElements,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: theme.spacing.padding.cardSmall,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: theme.spacing.borderWidth.thin,
-    height: 50,
-    backgroundColor: theme.colors.border.light,
-  },
-  statValue: {
-    fontSize: theme.typography.fontSize['3xl'],
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.secondary.main,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  statLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-  },
-  logoutButton: {
-    backgroundColor: theme.colors.error.main,
-    borderRadius: theme.spacing.borderRadius.base,
-    paddingVertical: theme.spacing.padding.screen,
-    marginHorizontal: theme.spacing.margin.betweenElements,
-    marginTop: theme.spacing.margin.betweenSections,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 50,
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.padding.cardLarge,
-  },
-  footerText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondary,
-  },
-});
+const styles = StyleSheet.create({});

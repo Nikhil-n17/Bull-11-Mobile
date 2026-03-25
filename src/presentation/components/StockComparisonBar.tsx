@@ -67,9 +67,11 @@ export const StockComparisonBar: React.FC<StockComparisonBarProps> = ({
 
       const percentage = totalValue > 0 ? (currentPrice / totalValue) * 100 : 0;
 
-      const performance = stock.percentageChange !== undefined
+      const performance = (stock.percentageChange != null)
         ? stock.percentageChange
-        : ((currentPrice - stock.openingPrice) / stock.openingPrice) * 100;
+        : (stock.openingPrice > 0)
+          ? ((currentPrice - stock.openingPrice) / stock.openingPrice) * 100
+          : 0;
 
       const colorSet = STOCK_COLORS[index % STOCK_COLORS.length];
 

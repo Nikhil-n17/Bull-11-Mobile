@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.medium,
   },
   resultsContainer: {
-    maxHeight: 300,
+    maxHeight: 640,
     marginBottom: theme.spacing.margin.betweenCards,
   },
   resultsLabel: {

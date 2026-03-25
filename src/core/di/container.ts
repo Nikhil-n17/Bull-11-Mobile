@@ -12,6 +12,7 @@ import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { GameRepositoryImpl } from '@/src/data/repositories/GameRepositoryImpl';
 import { StockRepositoryImpl } from '@/src/data/repositories/StockRepositoryImpl';
 import { AdminRepositoryImpl } from '@/src/data/repositories/AdminRepositoryImpl';
+import { ContestRepositoryImpl } from '@/src/data/repositories/ContestRepositoryImpl';
 
 // Use Cases - Auth
 import { LoginUseCase } from '@/src/domain/usecases/auth/LoginUseCase';
@@ -38,6 +39,17 @@ import { GetAllUsersUseCase } from '@/src/domain/usecases/admin/GetAllUsersUseCa
 import { GetUserByIdUseCase } from '@/src/domain/usecases/admin/GetUserByIdUseCase';
 import { GetUserByEmailUseCase } from '@/src/domain/usecases/admin/GetUserByEmailUseCase';
 
+// Use Cases - Contest
+import { ListContestsUseCase } from '@/src/domain/usecases/contest/ListContestsUseCase';
+import { GetContestUseCase } from '@/src/domain/usecases/contest/GetContestUseCase';
+import { JoinContestUseCase } from '@/src/domain/usecases/contest/JoinContestUseCase';
+import { SubmitTeamUseCase } from '@/src/domain/usecases/contest/SubmitTeamUseCase';
+import { GetMyTeamUseCase } from '@/src/domain/usecases/contest/GetMyTeamUseCase';
+import { WithdrawFromContestUseCase } from '@/src/domain/usecases/contest/WithdrawFromContestUseCase';
+import { GetLeaderboardUseCase } from '@/src/domain/usecases/contest/GetLeaderboardUseCase';
+import { GetMyPerformanceUseCase } from '@/src/domain/usecases/contest/GetMyPerformanceUseCase';
+import { GetMyContestsUseCase } from '@/src/domain/usecases/contest/GetMyContestsUseCase';
+
 /**
  * Dependency Injection Container
  * Singleton pattern for managing dependencies
@@ -54,6 +66,7 @@ class DIContainer {
   private readonly gameRepository: GameRepositoryImpl;
   private readonly stockRepository: StockRepositoryImpl;
   private readonly adminRepository: AdminRepositoryImpl;
+  readonly contestRepository: ContestRepositoryImpl;
 
   // Use Cases - Auth
   readonly loginUseCase: LoginUseCase;
@@ -80,6 +93,17 @@ class DIContainer {
   readonly getUserByIdUseCase: GetUserByIdUseCase;
   readonly getUserByEmailUseCase: GetUserByEmailUseCase;
 
+  // Use Cases - Contest
+  readonly listContestsUseCase: ListContestsUseCase;
+  readonly getContestUseCase: GetContestUseCase;
+  readonly joinContestUseCase: JoinContestUseCase;
+  readonly submitTeamUseCase: SubmitTeamUseCase;
+  readonly getMyTeamUseCase: GetMyTeamUseCase;
+  readonly withdrawFromContestUseCase: WithdrawFromContestUseCase;
+  readonly getLeaderboardUseCase: GetLeaderboardUseCase;
+  readonly getMyPerformanceUseCase: GetMyPerformanceUseCase;
+  readonly getMyContestsUseCase: GetMyContestsUseCase;
+
   private constructor() {
     // Initialize infrastructure
     this.storageService = new StorageService();
@@ -90,6 +114,7 @@ class DIContainer {
     this.gameRepository = new GameRepositoryImpl(this.apiClient);
     this.stockRepository = new StockRepositoryImpl(this.apiClient);
     this.adminRepository = new AdminRepositoryImpl(this.apiClient);
+    this.contestRepository = new ContestRepositoryImpl(this.apiClient);
 
     // Initialize use cases - Auth
     this.loginUseCase = new LoginUseCase(this.authRepository);
@@ -115,6 +140,17 @@ class DIContainer {
     this.getAllUsersUseCase = new GetAllUsersUseCase(this.adminRepository);
     this.getUserByIdUseCase = new GetUserByIdUseCase(this.adminRepository);
     this.getUserByEmailUseCase = new GetUserByEmailUseCase(this.adminRepository);
+
+    // Initialize use cases - Contest
+    this.listContestsUseCase = new ListContestsUseCase(this.contestRepository);
+    this.getContestUseCase = new GetContestUseCase(this.contestRepository);
+    this.joinContestUseCase = new JoinContestUseCase(this.contestRepository);
+    this.submitTeamUseCase = new SubmitTeamUseCase(this.contestRepository);
+    this.getMyTeamUseCase = new GetMyTeamUseCase(this.contestRepository);
+    this.withdrawFromContestUseCase = new WithdrawFromContestUseCase(this.contestRepository);
+    this.getLeaderboardUseCase = new GetLeaderboardUseCase(this.contestRepository);
+    this.getMyPerformanceUseCase = new GetMyPerformanceUseCase(this.contestRepository);
+    this.getMyContestsUseCase = new GetMyContestsUseCase(this.contestRepository);
   }
 
   static getInstance(): DIContainer {

@@ -7,3 +7,4 @@ export { ErrorDisplay } from './ErrorDisplay';
 export { ErrorBanner } from './ErrorBanner';
 export { SessionTimeoutBanner } from './SessionTimeoutBanner';
 export { Toast, type ToastVariant, type ToastProps } from './Toast';
+export { ServerWakeUpLoader } from './ServerWakeUpLoader';

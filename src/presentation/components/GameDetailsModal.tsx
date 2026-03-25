@@ -452,7 +452,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
 
     // Use backend's totalReturnPercentage if available (more accurate, especially for closed games)
     // Otherwise calculate it manually for active games
-    const totalReturn = game.totalReturnPercentage !== undefined
+    const totalReturn = game.totalReturnPercentage !== undefined && game.totalReturnPercentage !== null
       ? game.totalReturnPercentage
       : (openingPrice > 0 ? ((currentOrClosingPrice - openingPrice) / openingPrice) * 100 : 0);
 
@@ -465,9 +465,11 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
     const stocksWithPerformance: StockWithPerformance[] = game.stocks.map((stock) => {
       const stockOpening = stock.openingPrice;
       const stockCurrent = stock.currentPrice || stock.closingPrice || stock.openingPrice;
-      const stockChange = stock.percentageChange !== undefined
+      const stockChange = (stock.percentageChange != null)
         ? stock.percentageChange
-        : ((stockCurrent - stockOpening) / stockOpening) * 100;
+        : (stockOpening > 0)
+          ? ((stockCurrent - stockOpening) / stockOpening) * 100
+          : 0;
 
       return {
         symbol: stock.symbol,
@@ -527,7 +529,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
               ]}>
                 {isCancelled
                   ? 'N/A'
-                  : game.totalReturnPercentage !== undefined || totalReturn !== 0
+                  : totalReturn !== null && totalReturn !== undefined
                     ? `${isProfit ? '+' : ''}${totalReturn.toFixed(2)}%`
                     : 'N/A'}
               </Text>

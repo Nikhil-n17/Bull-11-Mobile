@@ -821,7 +821,7 @@ export default function ActiveGamesScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.title}>Active Games</Text>
+            <Text style={styles.title}>My Practice Games</Text>
             <Text style={styles.subtitle}>
               Welcome, {user?.name || 'Player'}
             </Text>
@@ -880,6 +880,18 @@ export default function ActiveGamesScreen() {
           type="warning"
         />
       )}
+
+      {/* Start New Game Button */}
+      <View style={styles.newGameButtonContainer}>
+        <TouchableOpacity
+          style={styles.newGameButton}
+          onPress={() => router.push('/(tabs)/new-game')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.newGameButtonIcon}>➕</Text>
+          <Text style={styles.newGameButtonText}>Start New Game</Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={gamesWithLivePrices}
@@ -969,9 +981,16 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
     backgroundColor: theme.colors.primary.main,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerTop: {
     flexDirection: 'row',
@@ -1022,17 +1041,20 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '800',
     color: theme.colors.primary.contrast,
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: theme.colors.info.bg,
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '500',
   },
   listContent: {
     paddingVertical: 16,
+    paddingBottom: 80,
   },
   gameCard: {
     padding: 4,
@@ -1295,5 +1317,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: theme.colors.neutral.white,
     letterSpacing: 0.3,
+  },
+  newGameButtonContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: theme.colors.background.default,
+  },
+  newGameButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#006e1c', // Bull-11 green
+    borderRadius: 24, // Pill shape
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  newGameButtonIcon: {
+    fontSize: 18,
+    color: theme.colors.neutral.white,
+  },
+  newGameButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.neutral.white,
+    letterSpacing: 0.5,
   },
 });

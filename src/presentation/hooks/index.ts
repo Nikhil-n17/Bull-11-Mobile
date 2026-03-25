@@ -23,3 +23,6 @@ export {
   COUNTDOWN_COLORS,
   type MarketCountdownState,
 } from './useMarketCountdown';
+
+// Server wake-up hook for Render cold starts
+export { useServerWakeUp } from './useServerWakeUp';

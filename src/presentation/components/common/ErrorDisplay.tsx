@@ -1,17 +1,16 @@
 /**
  * Error Display Component
- * Reusable error display with retry functionality
+ * Reusable error display with retry functionality - NativeBase redesign
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { Center, VStack, Text, Button } from 'native-base';
 
 interface ErrorDisplayProps {
   message: string;
   title?: string;
   onRetry?: () => void;
   retryText?: string;
-  style?: ViewStyle;
   showIcon?: boolean;
 }
 
@@ -20,60 +19,30 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   title = 'Error',
   onRetry,
   retryText = 'Retry',
-  style,
   showIcon = true,
 }) => {
   return (
-    <View style={[styles.container, style]}>
-      {showIcon && <Text style={styles.icon}>⚠️</Text>}
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
-      {onRetry && (
-        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-          <Text style={styles.retryButtonText}>{retryText}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    <Center flex={1} bg="gray.50" p={5}>
+      <VStack space={4} alignItems="center" maxW="90%">
+        {showIcon && <Text fontSize="5xl">⚠️</Text>}
+        <Text fontSize="xl" fontWeight="600" color="error.500" textAlign="center">
+          {title}
+        </Text>
+        <Text fontSize="md" color="gray.600" textAlign="center" lineHeight="sm">
+          {message}
+        </Text>
+        {onRetry && (
+          <Button
+            onPress={onRetry}
+            colorScheme="primary"
+            minW="120px"
+            borderRadius="lg"
+            mt={2}
+          >
+            {retryText}
+          </Button>
+        )}
+      </VStack>
+    </Center>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 20,
-  },
-  icon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#dc3545',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 16,
-    color: '#6c757d',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  retryButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

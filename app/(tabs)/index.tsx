@@ -1,9 +1,9 @@
 /**
- * Tabs Index - Redirect to Games
+ * Tabs Index - Redirect to Home
  */
 
 import { Redirect } from 'expo-router';
 
 export default function TabsIndex() {
-  return <Redirect href="/(tabs)/games" />;
+  return <Redirect href="/(tabs)/home" />;
 }

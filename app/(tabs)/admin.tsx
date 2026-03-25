@@ -74,6 +74,10 @@ export default function AdminScreen() {
     router.push('/(admin)/kite-setup' as any);
   };
 
+  const navigateToContestManagement = () => {
+    router.push('/(admin)/contests' as any);
+  };
+
   const navigateToAllGames = () => {
     Alert.alert('Coming Soon', 'View all user games feature is under development');
   };
@@ -147,6 +151,19 @@ export default function AdminScreen() {
               <Text style={styles.actionTitle}>Kite Integration</Text>
               <Text style={styles.actionDescription}>
                 Configure Zerodha Kite API connection
+              </Text>
+            </View>
+            <Text style={styles.actionArrow}>›</Text>
+          </View>
+        </Card>
+
+        <Card onPress={navigateToContestManagement}>
+          <View style={styles.actionCard}>
+            <Text style={styles.actionIcon}>🏆</Text>
+            <View style={styles.actionTextContainer}>
+              <Text style={styles.actionTitle}>Contest Management</Text>
+              <Text style={styles.actionDescription}>
+                Create, start, and end contests
               </Text>
             </View>
             <Text style={styles.actionArrow}>›</Text>

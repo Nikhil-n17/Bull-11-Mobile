@@ -66,7 +66,7 @@ export class SessionManager {
    */
   static async isSessionValid(): Promise<boolean> {
     const data = await this.getSessionData();
-    if (!data) return false;
+    if (!data) return true; // No session data yet — don't trigger expiry
 
     const inactiveTime = Date.now() - data.lastActivity;
     return inactiveTime < this.INACTIVITY_TIMEOUT_MS;

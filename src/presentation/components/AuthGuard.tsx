@@ -24,17 +24,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     }
   }, [isAuthenticated, loading, router]);
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
+    // Show loading spinner while checking auth or redirecting to login
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
-  }
-
-  if (!isAuthenticated) {
-    // Return null while redirecting
-    return null;
   }
 
   return <>{children}</>;

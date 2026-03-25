@@ -50,6 +50,13 @@ export default function AdminLayout() {
             headerShown: true,
           }}
         />
+        <Stack.Screen
+          name="contests"
+          options={{
+            title: 'Contest Management',
+            headerShown: false,
+          }}
+        />
       </Stack>
     </AdminGuard>
   );

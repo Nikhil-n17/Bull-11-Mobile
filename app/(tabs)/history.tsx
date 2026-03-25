@@ -5,16 +5,12 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
-  TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
+import { Box, VStack, HStack, Text, Badge, Button } from 'native-base';
 import { useRouter } from 'expo-router';
-import { Card } from '@/src/presentation/components/common/Card';
 import { GameDetailsModal } from '@/src/presentation/components/GameDetailsModal';
 import { StockComparisonBar } from '@/src/presentation/components/StockComparisonBar';
 import { LoadingSpinner } from '@/src/presentation/components/common/LoadingSpinner';
@@ -23,7 +19,7 @@ import { ErrorBanner } from '@/src/presentation/components/common/ErrorBanner';
 import { container } from '@/src/core/di/container';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
 import { ErrorHandler } from '@/src/core/utils/errorHandler';
-import { theme, getPerformanceColor } from '@/src/core/theme';
+import { getPerformanceColor } from '@/src/core/theme';
 import type { Game } from '@/src/domain/entities/Game';
 import { GameStatus } from '@/src/domain/entities/Game';
 
@@ -120,34 +116,20 @@ export default function HistoryScreen() {
     const isCancelled = item.status === GameStatus.CANCELLED;
     const duration = calculateDuration(item.createdAt, item.closedAt);
 
-    // Helper function to get momentum color
-    const getMomentumColor = (momentum?: string): string => {
-      if (!momentum) return theme.colors.neutral.gray500;
-      switch (momentum.toLowerCase()) {
-        case 'accelerating':
-        case 'strong gaining':
-          return '#4CAF50'; // Green
-        case 'gaining':
-        case 'steady':
-          return '#2196F3'; // Blue
-        case 'losing':
-          return '#FF9800'; // Orange
-        case 'decelerating':
-        case 'strong losing':
-          return '#F44336'; // Red
-        case 'volatile':
-          return '#9C27B0'; // Purple
-        default:
-          return theme.colors.neutral.gray500;
-      }
-    };
-
     return (
-      <Card>
-        <View style={styles.gameCard}>
-          <View style={styles.gameHeader}>
-            <View>
-              <Text style={styles.gameDate}>
+      <Box
+        bg="white"
+        borderRadius="lg"
+        p={4}
+        mb={3}
+        shadow={2}
+        mx={4}
+      >
+        <VStack space={3}>
+          {/* Header with date and status badge */}
+          <HStack justifyContent="space-between" alignItems="flex-start">
+            <VStack>
+              <Text fontSize="md" fontWeight="semibold" color="coolGray.800">
                 {new Date(item.createdAt).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -155,128 +137,78 @@ export default function HistoryScreen() {
                 })}
               </Text>
               {item.closedAt && (
-                <Text style={styles.closedDate}>
+                <Text fontSize="xs" color="coolGray.500" mt={1}>
                   Closed: {new Date(item.closedAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                   })}
                 </Text>
               )}
-            </View>
-            <View style={[
-              styles.statusBadge,
-              { backgroundColor: isCancelled ? theme.colors.neutral.gray500 : theme.colors.info.main }
-            ]}>
-              <Text style={styles.statusText}>
+            </VStack>
+            <Badge
+              colorScheme={isCancelled ? 'coolGray' : 'blue'}
+              variant="solid"
+              rounded="full"
+              px={3}
+              py={1}
+            >
+              <Text fontSize="xs" fontWeight="bold" color="white">
                 {isCancelled ? 'CANCELLED' : 'COMPLETED'}
               </Text>
-            </View>
-          </View>
-
-          {/* Best/Worst Performer Badges */}
-          {!isCancelled && (item.bestPerformer || item.worstPerformer) && (
-            <View style={styles.performerBadgesContainer}>
-              {item.bestPerformer && (
-                <View style={styles.performerBadge}>
-                  <Text style={styles.performerEmoji}>🏆</Text>
-                  <Text style={styles.performerText}>
-                    Best: {item.bestPerformer.symbol}{' '}
-                    <Text style={[styles.performerPercent, { color: getPerformanceColor(item.bestPerformer.percentageChange) }]}>
-                      +{item.bestPerformer.percentageChange.toFixed(2)}%
-                    </Text>
-                  </Text>
-                </View>
-              )}
-              {item.worstPerformer && (
-                <View style={styles.performerBadge}>
-                  <Text style={styles.performerEmoji}>📉</Text>
-                  <Text style={styles.performerText}>
-                    Worst: {item.worstPerformer.symbol}{' '}
-                    <Text style={[styles.performerPercent, { color: getPerformanceColor(item.worstPerformer.percentageChange) }]}>
-                      {item.worstPerformer.percentageChange >= 0 ? '+' : ''}{item.worstPerformer.percentageChange.toFixed(2)}%
-                    </Text>
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Momentum Indicator */}
-          {!isCancelled && item.momentum && (
-            <View style={styles.momentumContainer}>
-              <View style={[styles.momentumBadge, { backgroundColor: getMomentumColor(item.momentum) }]}>
-                <Text style={styles.momentumText}>
-                  {item.momentum.toUpperCase()}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.stocksList}>
-            {item.stocks.map((stock, index) => (
-              <View key={index} style={styles.stockItem}>
-                <Text style={styles.stockSymbol}>{stock.symbol}</Text>
-                <View style={styles.stockPrices}>
-                  <Text style={styles.stockPrice}>
-                    ₹{stock.openingPrice.toFixed(2)}
-                  </Text>
-                  {stock.closingPrice && (
-                    <>
-                      <Text style={styles.arrowText}>→</Text>
-                      <Text style={styles.stockPrice}>
-                        ₹{stock.closingPrice.toFixed(2)}
-                      </Text>
-                    </>
-                  )}
-                  {stock.percentageChange !== undefined && (
-                    <Text style={[
-                      styles.stockPercent,
-                      { color: getPerformanceColor(stock.percentageChange) }
-                    ]}>
-                      {' '}({stock.percentageChange >= 0 ? '+' : ''}{stock.percentageChange.toFixed(2)}%)
-                    </Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
+            </Badge>
+          </HStack>
 
           {/* Stock Comparison Bar */}
           <StockComparisonBar stocks={item.stocks} variant="mini" isActive={false} />
 
-          <View style={styles.performanceContainer}>
-            <View style={styles.performanceRow}>
-              <Text style={styles.performanceLabel}>Duration:</Text>
-              <Text style={styles.performanceValue}>{duration}</Text>
-            </View>
-            <View style={styles.performanceRow}>
-              <Text style={styles.performanceLabel}>Opening:</Text>
-              <Text style={styles.performanceValue}>₹{openingPrice.toFixed(2)}</Text>
-            </View>
-            <View style={styles.performanceRow}>
-              <Text style={styles.performanceLabel}>Closing:</Text>
-              <Text style={styles.performanceValue}>₹{closingPrice.toFixed(2)}</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.performanceRow}>
-              <Text style={styles.totalLabel}>Total Return:</Text>
-              <Text style={[
-                styles.returnValue,
-                { color: isCancelled ? theme.colors.text.disabled : getPerformanceColor(percentChange) }
-              ]}>
-                {isCancelled ? 'N/A' : `${isProfit ? '+' : ''}${percentChange.toFixed(2)}%`}
+          {/* Performance metrics in gray boxes */}
+          <HStack space={3} justifyContent="space-between">
+            <Box flex={1} bg="coolGray.100" borderRadius="md" p={3}>
+              <Text fontSize="xs" color="coolGray.600" fontWeight="medium" mb={1}>
+                OPENING
               </Text>
-            </View>
-          </View>
+              <Text fontSize="lg" fontWeight="bold" color="coolGray.800">
+                ₹{openingPrice.toFixed(2)}
+              </Text>
+            </Box>
+            <Box flex={1} bg="coolGray.100" borderRadius="md" p={3}>
+              <Text fontSize="xs" color="coolGray.600" fontWeight="medium" mb={1}>
+                CLOSING
+              </Text>
+              <Text fontSize="lg" fontWeight="bold" color="coolGray.800">
+                ₹{closingPrice.toFixed(2)}
+              </Text>
+            </Box>
+          </HStack>
 
-          <TouchableOpacity
-            style={styles.viewDetailsButton}
+          {/* Total return in gray box */}
+          <Box bg="coolGray.100" borderRadius="md" p={3}>
+            <Text fontSize="xs" color="coolGray.600" fontWeight="medium" mb={1}>
+              TOTAL RETURN
+            </Text>
+            <Text
+              fontSize="2xl"
+              fontWeight="bold"
+              color={isCancelled ? 'coolGray.500' : (isProfit ? 'success.600' : 'error.600')}
+            >
+              {isCancelled ? 'N/A' : `${isProfit ? '+' : ''}${percentChange.toFixed(2)}%`}
+            </Text>
+          </Box>
+
+          {/* View Details Button */}
+          <Button
             onPress={() => handleViewDetails(item.id)}
+            bg="primary.500"
+            _pressed={{ bg: 'primary.600' }}
+            borderRadius="lg"
+            py={3}
           >
-            <Text style={styles.viewDetailsButtonText}>View Details</Text>
-          </TouchableOpacity>
-        </View>
-      </Card>
+            <Text fontSize="md" fontWeight="semibold" color="white">
+              View Details
+            </Text>
+          </Button>
+        </VStack>
+      </Box>
     );
   };
 
@@ -295,13 +227,16 @@ export default function HistoryScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Game History</Text>
-        <Text style={styles.subtitle}>
+    <Box flex={1} bg="coolGray.50">
+      {/* Header */}
+      <Box bg="secondary.500" pt={16} pb={6} px={4}>
+        <Text fontSize="2xl" fontWeight="bold" color="white" mb={1}>
+          Game History
+        </Text>
+        <Text fontSize="md" color="secondary.200">
           Your completed games
         </Text>
-      </View>
+      </Box>
 
       {error && refreshing && (
         <ErrorBanner message={error} type="error" />
@@ -311,18 +246,20 @@ export default function HistoryScreen() {
         data={games}
         renderItem={renderGameCard}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ paddingVertical: 16 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📊</Text>
-            <Text style={styles.emptyText}>No game history</Text>
-            <Text style={styles.emptySubtext}>
+          <Box flex={1} justifyContent="center" alignItems="center" py={20}>
+            <Text fontSize="6xl" mb={4}>📊</Text>
+            <Text fontSize="lg" fontWeight="semibold" color="coolGray.600" mb={2}>
+              No game history
+            </Text>
+            <Text fontSize="sm" color="coolGray.500" textAlign="center">
               Complete or close a game to see it here
             </Text>
-          </View>
+          </Box>
         }
       />
 
@@ -333,225 +270,8 @@ export default function HistoryScreen() {
           onClose={handleCloseModal}
         />
       )}
-    </View>
+    </Box>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.default,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.default,
-  },
-  loadingText: {
-    marginTop: theme.spacing.spacing.xs,
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: theme.spacing.padding.screen,
-    paddingBottom: theme.spacing.spacing.base,
-    backgroundColor: theme.colors.secondary.main,
-  },
-  title: {
-    ...theme.typography.textStyles.h1,
-    color: theme.colors.secondary.contrast,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.secondary.light,
-  },
-  listContent: {
-    paddingVertical: theme.spacing.spacing.base,
-  },
-  gameCard: {
-    padding: theme.spacing.spacing.xs,
-  },
-  gameHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.spacing.sm,
-  },
-  gameDate: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.text.primary,
-  },
-  closedDate: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.disabled,
-    marginTop: theme.spacing.spacing.xs,
-  },
-  statusBadge: {
-    paddingHorizontal: theme.spacing.spacing.sm,
-    paddingVertical: theme.spacing.spacing.xs,
-    borderRadius: theme.spacing.borderRadius.full,
-  },
-  completedBadge: {
-    backgroundColor: theme.colors.info.main,
-  },
-  cancelledBadge: {
-    backgroundColor: theme.colors.neutral.gray500,
-  },
-  statusText: {
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.info.contrast,
-  },
-  stocksList: {
-    marginBottom: theme.spacing.spacing.base,
-  },
-  stockItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: theme.spacing.spacing.xs,
-    borderBottomWidth: theme.spacing.borderWidth.thin,
-    borderBottomColor: theme.colors.border.light,
-  },
-  stockSymbol: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.text.primary,
-  },
-  stockPrices: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stockPrice: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-  },
-  arrowText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.disabled,
-    marginHorizontal: theme.spacing.spacing.xs,
-  },
-  performanceContainer: {
-    backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.spacing.borderRadius.base,
-    padding: theme.spacing.padding.card,
-  },
-  performanceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  performanceLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondary,
-  },
-  performanceValue: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
-    color: theme.colors.text.primary,
-  },
-  divider: {
-    height: theme.spacing.borderWidth.thin,
-    backgroundColor: theme.colors.border.light,
-    marginVertical: theme.spacing.spacing.xs,
-  },
-  totalLabel: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.text.primary,
-  },
-  returnValue: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-  },
-  profit: {
-    color: theme.colors.success.main,
-  },
-  loss: {
-    color: theme.colors.error.main,
-  },
-  cancelled: {
-    color: theme.colors.text.disabled,
-  },
-  viewDetailsButton: {
-    backgroundColor: theme.colors.primary.main,
-    borderRadius: theme.spacing.borderRadius.base,
-    paddingVertical: theme.spacing.spacing.sm,
-    alignItems: 'center',
-    marginTop: theme.spacing.spacing.sm,
-  },
-  viewDetailsButtonText: {
-    color: theme.colors.primary.contrast,
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: theme.spacing.spacing.base,
-  },
-  emptyText: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  emptySubtext: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.disabled,
-    textAlign: 'center',
-  },
-  performerBadgesContainer: {
-    marginBottom: theme.spacing.spacing.sm,
-    gap: theme.spacing.spacing.xs,
-  },
-  performerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.paper,
-    paddingVertical: theme.spacing.spacing.xs,
-    paddingHorizontal: theme.spacing.spacing.sm,
-    borderRadius: theme.spacing.borderRadius.base,
-    borderWidth: theme.spacing.borderWidth.thin,
-    borderColor: theme.colors.border.light,
-  },
-  performerEmoji: {
-    fontSize: theme.typography.fontSize.base,
-    marginRight: theme.spacing.spacing.xs,
-  },
-  performerText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.fontWeight.medium,
-  },
-  performerPercent: {
-    fontWeight: theme.typography.fontWeight.bold,
-  },
-  momentumContainer: {
-    marginBottom: theme.spacing.spacing.sm,
-    alignItems: 'flex-start',
-  },
-  momentumBadge: {
-    paddingHorizontal: theme.spacing.spacing.sm,
-    paddingVertical: theme.spacing.spacing.xs,
-    borderRadius: theme.spacing.borderRadius.full,
-  },
-  momentumText: {
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: '#FFFFFF',
-  },
-  stockPercent: {
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-});
+const styles = StyleSheet.create({});

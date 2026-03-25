@@ -56,7 +56,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     if (onIndexRoute) {
       isRedirecting.current = true;
       if (isAuthenticated) {
-        router.replace('/(tabs)/games' as any);
+        router.replace('/(tabs)/home' as any);
       } else {
         router.replace('/auth/login' as any);
       }
@@ -67,12 +67,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     }
 
     // If in auth group and authenticated, redirect to app
-    // UNLESS user is intentionally going to login/register (prevent logout race condition)
-    const isLoginOrRegisterRoute = segments[1] === 'login' || segments[1] === 'register';
-
-    if (inAuthGroup && isAuthenticated && !inTabsGroup && !isLoginOrRegisterRoute) {
+    if (inAuthGroup && isAuthenticated) {
       isRedirecting.current = true;
-      router.replace('/(tabs)/games' as any);
+      router.replace('/(tabs)/home' as any);
       // Reset flag after navigation completes
       setTimeout(() => {
         isRedirecting.current = false;
@@ -93,7 +90,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     // If admin access is required but user is not admin
     if (requireAdmin && !isAdmin && !inTabsGroup) {
       isRedirecting.current = true;
-      router.replace('/(tabs)/games' as any);
+      router.replace('/(tabs)/home' as any);
       setTimeout(() => {
         isRedirecting.current = false;
       }, 500);

@@ -1,26 +1,28 @@
 /**
- * Login Screen
+ * Login Screen - Redesigned with NativeBase
  * Handles user authentication with rate limiting
  */
 
 import React, { useState } from 'react';
+import { Platform, Alert, KeyboardAvoidingView } from 'react-native';
 import {
-  View,
+  Box,
+  VStack,
+  HStack,
   Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
+  Input,
+  Pressable,
+  Icon,
   ScrollView,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
+  Spinner,
+} from 'native-base';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
 import { ErrorText } from '../../components/common/ErrorText';
+import { ServerWakeUpLoader } from '../../components/common/ServerWakeUpLoader';
 import { useAuth } from '../../hooks/useAuth';
-import { theme } from '@/src/core/theme';
+import { useServerWakeUp } from '../../hooks/useServerWakeUp';
 
 interface LoginFormData {
   email: string;
@@ -30,6 +32,7 @@ interface LoginFormData {
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const { isWakingUp, startRequest, completeRequest, dismiss } = useServerWakeUp();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -50,14 +53,26 @@ export default function LoginScreen() {
       setIsLoading(true);
       setErrorMessage(null);
 
+      // Start tracking for cold start detection
+      startRequest();
+
       const user = await login({
         email: data.email.trim(),
         password: data.password,
       });
 
+      // Complete tracking
+      completeRequest();
+
+      // Wait a bit for state to update
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       // All users navigate to the same tabs - admins will see extra Admin tab
-      router.replace('/(tabs)' as any);
+      router.replace('/(tabs)/home' as any);
     } catch (error) {
+      // Complete tracking on error too
+      completeRequest();
+
       const message = error instanceof Error ? error.message : 'Login failed. Please try again.';
       setErrorMessage(message);
       setFailedAttempts((prev) => prev + 1);
@@ -79,175 +94,282 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.logo}>📈</Text>
-            <Text style={styles.title}>Bull-11</Text>
-            <Text style={styles.subtitle}>Stock Market Fantasy Game</Text>
-          </View>
-
-          <View style={styles.form}>
-            <Controller
-              control={control}
-              name="email"
-              rules={{
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Email"
-                  placeholder="admin@bull11.com"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.email?.message}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  editable={!isLoading}
+        <Box flex={1} bg="coolGray.50" safeArea>
+          <VStack
+            flex={1}
+            px={6}
+            py={8}
+            justifyContent="center"
+            alignItems="center"
+            space={8}
+          >
+            {/* Header with Icon */}
+            <VStack alignItems="center" space={3}>
+              <Box
+                bg="white"
+                p={4}
+                borderRadius="2xl"
+                shadow={2}
+              >
+                <Icon
+                  as={MaterialIcons}
+                  name="account-balance"
+                  size="xl"
+                  color="green.600"
                 />
-              )}
-            />
+              </Box>
 
-            <Controller
-              control={control}
-              name="password"
-              rules={{
-                required: 'Password is required',
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Password"
-                  placeholder="Enter your password"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.password?.message}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoComplete="password"
-                  editable={!isLoading}
-                />
-              )}
-            />
-
-            {errorMessage && <ErrorText message={errorMessage} />}
-
-            {/* Show rate limit warning after first failed attempt */}
-            {failedAttempts > 0 && (
-              <View style={styles.warningBox}>
-                <Text style={styles.warningIcon}>⚠️</Text>
-                <Text style={styles.warningText}>
-                  {5 - failedAttempts} attempts remaining. Account will be locked for 15 minutes after 5 failed attempts.
-                </Text>
-              </View>
-            )}
-
-            <Button
-              title={isLoading ? 'Logging In...' : 'Log In'}
-              onPress={handleSubmit(onSubmit)}
-              loading={isLoading}
-              disabled={isLoading}
-              style={styles.submitButton}
-            />
-
-            <TouchableOpacity
-              style={styles.registerLink}
-              onPress={() => router.push('/auth/register' as any)}
-            >
-              <Text style={styles.registerLinkText}>
-                Don't have an account? <Text style={styles.registerLinkBold}>Sign Up</Text>
+              <Text
+                fontSize="4xl"
+                fontWeight="bold"
+                color="black"
+              >
+                Bull-11
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+
+              <Text
+                fontSize="md"
+                color="coolGray.500"
+                textAlign="center"
+              >
+                India's premier refined assets, curated for growth.
+              </Text>
+            </VStack>
+
+            {/* Form Container */}
+            <VStack w="100%" maxW="400px" space={4}>
+              {/* Email Input */}
+              <VStack space={2}>
+                <Text
+                  fontSize="xs"
+                  fontWeight="500"
+                  color="coolGray.500"
+                  textTransform="uppercase"
+                  letterSpacing="sm"
+                >
+                  Email Address
+                </Text>
+                <Controller
+                  control={control}
+                  name="email"
+                  rules={{
+                    required: 'Email is required',
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: 'Invalid email address',
+                    },
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="name@example.com"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      isDisabled={isLoading}
+                      bg="coolGray.100"
+                      borderWidth={0}
+                      borderRadius="lg"
+                      py={4}
+                      px={4}
+                      fontSize="md"
+                      placeholderTextColor="coolGray.400"
+                      _focus={{
+                        bg: 'coolGray.100',
+                        borderWidth: 0,
+                      }}
+                      InputRightElement={
+                        <Icon
+                          as={MaterialIcons}
+                          name="alternate-email"
+                          size="md"
+                          color="coolGray.400"
+                          mr={3}
+                        />
+                      }
+                    />
+                  )}
+                />
+                {errors.email && (
+                  <Text fontSize="xs" color="red.500">
+                    {errors.email.message}
+                  </Text>
+                )}
+              </VStack>
+
+              {/* Password Input with Forgot Link */}
+              <VStack space={2}>
+                <HStack justifyContent="space-between" alignItems="center">
+                  <Text
+                    fontSize="xs"
+                    fontWeight="500"
+                    color="coolGray.500"
+                    textTransform="uppercase"
+                    letterSpacing="sm"
+                  >
+                    Password
+                  </Text>
+                  <Pressable>
+                    <Text fontSize="sm" color="green.600" fontWeight="500">
+                      Forgot Password?
+                    </Text>
+                  </Pressable>
+                </HStack>
+                <Controller
+                  control={control}
+                  name="password"
+                  rules={{
+                    required: 'Password is required',
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="••••••••"
+                      type="password"
+                      autoCapitalize="none"
+                      autoComplete="password"
+                      isDisabled={isLoading}
+                      bg="coolGray.100"
+                      borderWidth={0}
+                      borderRadius="lg"
+                      py={4}
+                      px={4}
+                      fontSize="md"
+                      placeholderTextColor="coolGray.400"
+                      _focus={{
+                        bg: 'coolGray.100',
+                        borderWidth: 0,
+                      }}
+                      InputRightElement={
+                        <Icon
+                          as={MaterialIcons}
+                          name="lock-outline"
+                          size="md"
+                          color="coolGray.400"
+                          mr={3}
+                        />
+                      }
+                    />
+                  )}
+                />
+                {errors.password && (
+                  <Text fontSize="xs" color="red.500">
+                    {errors.password.message}
+                  </Text>
+                )}
+              </VStack>
+
+              {/* Error Message */}
+              {errorMessage && <ErrorText message={errorMessage} />}
+
+              {/* Rate Limit Warning */}
+              {failedAttempts > 0 && (
+                <HStack
+                  bg="orange.50"
+                  borderLeftWidth={3}
+                  borderLeftColor="orange.500"
+                  borderRadius="md"
+                  p={3}
+                  space={2}
+                  alignItems="flex-start"
+                >
+                  <Text fontSize="md">⚠️</Text>
+                  <Text fontSize="xs" color="orange.700" flex={1}>
+                    {5 - failedAttempts} attempts remaining. Account will be locked for 15 minutes after 5 failed attempts.
+                  </Text>
+                </HStack>
+              )}
+
+              {/* Login Button - Green Pill Shape */}
+              <Pressable
+                onPress={handleSubmit(onSubmit)}
+                isDisabled={isLoading}
+                mt={2}
+              >
+                {({ isPressed }) => (
+                  <Box
+                    bg={isPressed ? 'green.700' : 'green.600'}
+                    borderRadius="full"
+                    py={4}
+                    px={6}
+                    shadow={3}
+                    opacity={isLoading ? 0.7 : 1}
+                  >
+                    {isLoading ? (
+                      <HStack justifyContent="center" alignItems="center" space={2}>
+                        <Spinner color="white" size="sm" />
+                        <Text
+                          color="white"
+                          fontSize="lg"
+                          fontWeight="semibold"
+                          textAlign="center"
+                        >
+                          Logging In...
+                        </Text>
+                      </HStack>
+                    ) : (
+                      <HStack justifyContent="center" alignItems="center" space={2}>
+                        <Text
+                          color="white"
+                          fontSize="lg"
+                          fontWeight="semibold"
+                        >
+                          Login
+                        </Text>
+                        <Icon
+                          as={MaterialIcons}
+                          name="arrow-forward"
+                          size="md"
+                          color="white"
+                        />
+                      </HStack>
+                    )}
+                  </Box>
+                )}
+              </Pressable>
+
+              {/* Divider with Text */}
+              <HStack alignItems="center" space={3} my={2}>
+                <Box flex={1} h="1px" bg="coolGray.300" />
+                <Text fontSize="xs" color="coolGray.400" textTransform="uppercase">
+                  Secure Access
+                </Text>
+                <Box flex={1} h="1px" bg="coolGray.300" />
+              </HStack>
+
+              {/* Sign Up Link */}
+              <Pressable
+                onPress={() => router.push('/auth/register' as any)}
+              >
+                <Text
+                  fontSize="md"
+                  color="coolGray.600"
+                  textAlign="center"
+                >
+                  Don't have an account?{' '}
+                  <Text color="green.600" fontWeight="bold">
+                    Sign Up
+                  </Text>
+                </Text>
+              </Pressable>
+            </VStack>
+          </VStack>
+        </Box>
       </ScrollView>
+
+      {/* Server Wake-Up Loader Modal */}
+      <ServerWakeUpLoader visible={isWakingUp} onDismiss={dismiss} />
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background.default,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: theme.spacing.padding.screen,
-  },
-  content: {
-    maxWidth: 400,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.margin.betweenSections,
-  },
-  logo: {
-    fontSize: theme.typography.fontSize['7xl'],
-    marginBottom: theme.spacing.margin.headingBottom,
-  },
-  title: {
-    ...theme.typography.textStyles.h1,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.lg,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.typography.fontWeight.medium,
-  },
-  form: {
-    backgroundColor: theme.colors.background.paper,
-    borderRadius: theme.spacing.borderRadius.lg,
-    padding: theme.spacing.padding.cardLarge,
-    ...theme.spacing.shadows.base,
-  },
-  warningBox: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.warning.bgAlt,
-    borderRadius: theme.spacing.borderRadius.base,
-    padding: theme.spacing.padding.cardSmall,
-    marginTop: theme.spacing.margin.betweenElements,
-    borderLeftWidth: theme.spacing.borderWidth.thick,
-    borderLeftColor: theme.colors.secondary.main,
-  },
-  warningIcon: {
-    fontSize: theme.typography.fontSize.base,
-    marginRight: theme.spacing.spacing.sm,
-  },
-  warningText: {
-    flex: 1,
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.secondary.dark,
-    lineHeight: theme.typography.lineHeight.sm,
-  },
-  submitButton: {
-    marginTop: theme.spacing.padding.cardLarge,
-  },
-  registerLink: {
-    marginTop: theme.spacing.margin.betweenElements,
-    alignItems: 'center',
-  },
-  registerLinkText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondary,
-  },
-  registerLinkBold: {
-    color: theme.colors.primary.main,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-});
