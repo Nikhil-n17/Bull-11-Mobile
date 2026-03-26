@@ -22,6 +22,7 @@ import { ErrorText } from '../../components/common/ErrorText';
 import { ServerWakeUpLoader } from '../../components/common/ServerWakeUpLoader';
 import { useAuth } from '../../hooks/useAuth';
 import { useServerWakeUp } from '../../hooks/useServerWakeUp';
+import { RateLimiter } from '@/src/core/security';
 
 interface LoginFormData {
   email: string;
@@ -34,7 +35,7 @@ export default function LoginScreen() {
   const { isWakingUp, startRequest, completeRequest, dismiss } = useServerWakeUp();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
 
   const {
     control,
@@ -51,6 +52,7 @@ export default function LoginScreen() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
+      setRemainingAttempts(null);
 
       // Start tracking for cold start detection
       startRequest();
@@ -74,7 +76,9 @@ export default function LoginScreen() {
 
       const message = error instanceof Error ? error.message : 'Login failed. Please try again.';
       setErrorMessage(message);
-      setFailedAttempts((prev) => prev + 1);
+
+      const check = await RateLimiter.isAllowed(data.email.trim());
+      setRemainingAttempts(check.remainingAttempts);
 
       // Show different alerts based on error type
       if (message.includes('Too many failed')) {
@@ -237,7 +241,7 @@ export default function LoginScreen() {
               {errorMessage && <ErrorText message={errorMessage} />}
 
               {/* Rate Limit Warning */}
-              {failedAttempts > 0 && (
+              {remainingAttempts !== null && remainingAttempts < 5 && (
                 <HStack
                   bg="orange.50"
                   borderLeftWidth={3}
@@ -249,7 +253,7 @@ export default function LoginScreen() {
                 >
                   <Text fontSize="md">⚠️</Text>
                   <Text fontSize="xs" color="orange.700" flex={1}>
-                    {5 - failedAttempts} attempts remaining. Account will be locked for 15 minutes after 5 failed attempts.
+                    {remainingAttempts} attempts remaining. Account will be locked for 30 minutes after 5 failed attempts.
                   </Text>
                 </HStack>
               )}

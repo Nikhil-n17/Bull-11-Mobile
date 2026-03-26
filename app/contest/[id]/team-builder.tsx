@@ -20,6 +20,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { container } from '@/src/core/di/container';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
 import { ConfirmDialog } from '@/src/presentation/components/ConfirmDialog';
+import { Toast } from '@/src/presentation/components/common/Toast';
 import type { Stock } from '@/src/domain/entities/Stock';
 import { Exchange } from '@/src/domain/entities/Stock';
 import { theme } from '@/src/core/theme';
@@ -42,6 +43,7 @@ export default function TeamBuilderScreen() {
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Load existing team on mount
   useEffect(() => {
@@ -191,8 +193,10 @@ export default function TeamBuilderScreen() {
         });
       }
 
-      // Navigate back to MY CONTESTS
-      router.replace('/(tabs)/contests' as any);
+      setSuccessMessage(isEditing ? 'Team updated successfully!' : 'Team submitted successfully!');
+      setTimeout(() => {
+        router.replace('/(tabs)/contests' as any);
+      }, 2000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit team';
       setError(errorMessage);
@@ -393,6 +397,15 @@ export default function TeamBuilderScreen() {
           confirmColor="#006e1c"
         />
       </ScrollView>
+
+      {successMessage && (
+        <Toast
+          message={successMessage}
+          variant="success"
+          duration={2000}
+          onDismiss={() => setSuccessMessage(null)}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }
