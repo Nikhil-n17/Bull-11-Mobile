@@ -13,7 +13,7 @@ interface TokenData {
 }
 
 export class TokenService {
-  private static readonly TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private static readonly TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
 
   /**
    * Store token with expiry metadata
