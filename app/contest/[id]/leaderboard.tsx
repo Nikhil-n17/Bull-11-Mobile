@@ -41,6 +41,7 @@ export default function LeaderboardScreen() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isScrolling, setIsScrolling] = useState(false);
+  const [finalizingResults, setFinalizingResults] = useState(false);
 
   const refreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const appStateRef = useRef(AppState.currentState);
@@ -63,17 +64,21 @@ export default function LeaderboardScreen() {
     {
       enabled: isContestLive,
       onContestEnd: () => {
-        // Poll up to 4 times (at 2s, 4s, 7s, 12s) until ranks are finalized
+        // Show "finalizing" overlay while polling for final results
+        setFinalizingResults(true);
+
         let attempts = 0;
         const delays = [2000, 4000, 7000, 12000];
 
         const pollForFinalResults = async () => {
-          await loadData(attempts > 0); // First load is full (shows spinner), rest are silent
+          await loadData(true); // always silent — overlay handles the UX
           attempts++;
 
-          // Check if ranks look finalized — re-poll if still 0
           if (attempts < delays.length) {
-            setTimeout(pollForFinalResults, delays[attempts] - (attempts > 0 ? delays[attempts - 1] : 0));
+            setTimeout(pollForFinalResults, delays[attempts] - delays[attempts - 1]);
+          } else {
+            // Done polling — hide overlay
+            setFinalizingResults(false);
           }
         };
 
@@ -472,6 +477,20 @@ export default function LeaderboardScreen() {
         removeClippedSubviews={true}
         contentContainerStyle={styles.listContent}
       />
+
+      {/* Finalizing overlay — shown while polling for final results after contest ends */}
+      {finalizingResults && (
+        <View style={styles.finalizingOverlay}>
+          <View style={styles.finalizingCard}>
+            <Text style={styles.finalizingEmoji}>🏁</Text>
+            <Text style={styles.finalizingTitle}>Contest Ended!</Text>
+            <Text style={styles.finalizingSubtext}>
+              Calculating final results...{'\n'}Please wait a moment.
+            </Text>
+            <ActivityIndicator size="large" color="#006e1c" style={{ marginTop: 16 }} />
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -750,6 +769,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+  },
+  finalizingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  finalizingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 36,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    marginHorizontal: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  finalizingEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  finalizingTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  finalizingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
   },
   loadingText: {
     fontSize: 16,
