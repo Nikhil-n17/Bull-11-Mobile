@@ -131,8 +131,8 @@ export const Toast: React.FC<ToastProps> = ({
   duration = 3000,
   onDismiss,
 }) => {
-  // Animation value for slide up/down
-  const slideAnim = useRef(new Animated.Value(100)).current;
+  // Starts off-screen below center, animates up to center
+  const slideAnim = useRef(new Animated.Value(200)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   /**
@@ -174,15 +174,15 @@ export const Toast: React.FC<ToastProps> = ({
   const config = getVariantConfig();
 
   /**
-   * Animate toast sliding up from bottom
+   * Animate toast sliding up from below center to center
    */
   const slideIn = () => {
     Animated.parallel([
       Animated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
-        tension: 65,
-        friction: 8,
+        tension: 60,
+        friction: 9,
       }),
       Animated.timing(opacityAnim, {
         toValue: 1,
@@ -193,18 +193,18 @@ export const Toast: React.FC<ToastProps> = ({
   };
 
   /**
-   * Animate toast sliding down and dismiss
+   * Animate toast sliding back down and dismiss
    */
   const slideOut = () => {
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue: 100,
-        duration: 250,
+        toValue: 200,
+        duration: 300,
         useNativeDriver: true,
       }),
       Animated.timing(opacityAnim, {
         toValue: 0,
-        duration: 250,
+        duration: 300,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -242,7 +242,7 @@ export const Toast: React.FC<ToastProps> = ({
           transform: [{ translateY: slideAnim }],
           opacity: opacityAnim,
           backgroundColor: config.backgroundColor,
-          borderTopColor: config.borderColor,
+          borderColor: config.borderColor,
         },
       ]}
     >
@@ -282,20 +282,23 @@ export const Toast: React.FC<ToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 3,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Safe area for iOS
+    bottom: '45%',
+    left: 32,
+    right: 32,
+    borderRadius: 16,
+    borderWidth: 1.5,
     ...Platform.select({
       ios: {
-        shadowColor: theme.colors.shadow.dark,
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 8,
+        elevation: 12,
+      },
+      web: {
+        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       },
     }),
   },

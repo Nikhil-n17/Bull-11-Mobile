@@ -4,7 +4,7 @@
  * Reuses stock search logic from new-game.tsx
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { container } from '@/src/core/di/container';
@@ -44,6 +45,7 @@ export default function TeamBuilderScreen() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   // Load existing team on mount
   useEffect(() => {
@@ -195,7 +197,13 @@ export default function TeamBuilderScreen() {
 
       setSuccessMessage(isEditing ? 'Team updated successfully!' : 'Team submitted successfully!');
       setTimeout(() => {
-        router.replace('/(tabs)/contests' as any);
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => {
+          router.replace('/(tabs)/contests' as any);
+        });
       }, 2000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit team';
@@ -260,11 +268,12 @@ export default function TeamBuilderScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -343,6 +352,7 @@ export default function TeamBuilderScreen() {
         {error && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.errorRetryHint}>Tap the button below to try again.</Text>
           </View>
         )}
 
@@ -406,7 +416,8 @@ export default function TeamBuilderScreen() {
           onDismiss={() => setSuccessMessage(null)}
         />
       )}
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </Animated.View>
   );
 }
 
@@ -601,6 +612,12 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#b3272a',
     fontSize: 14,
+  },
+  errorRetryHint: {
+    color: '#b3272a',
+    fontSize: 12,
+    marginTop: 4,
+    opacity: 0.75,
   },
   emptyContainer: {
     flex: 1,
