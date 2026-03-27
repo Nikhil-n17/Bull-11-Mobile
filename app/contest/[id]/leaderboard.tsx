@@ -63,9 +63,21 @@ export default function LeaderboardScreen() {
     {
       enabled: isContestLive,
       onContestEnd: () => {
-        // Contest completed — do a full non-silent reload for final results
-        // Small delay to allow backend to finalize before fetching
-        setTimeout(() => loadData(false), 1500);
+        // Poll up to 4 times (at 2s, 4s, 7s, 12s) until ranks are finalized
+        let attempts = 0;
+        const delays = [2000, 4000, 7000, 12000];
+
+        const pollForFinalResults = async () => {
+          await loadData(attempts > 0); // First load is full (shows spinner), rest are silent
+          attempts++;
+
+          // Check if ranks look finalized — re-poll if still 0
+          if (attempts < delays.length) {
+            setTimeout(pollForFinalResults, delays[attempts] - (attempts > 0 ? delays[attempts - 1] : 0));
+          }
+        };
+
+        setTimeout(pollForFinalResults, delays[0]);
       },
     }
   );

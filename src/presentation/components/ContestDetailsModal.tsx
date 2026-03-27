@@ -67,7 +67,18 @@ export const ContestDetailsModal: React.FC<ContestDetailsModalProps> = ({
     {
       enabled: wsEnabled,
       onContestEnd: () => {
-        setTimeout(() => loadContestData(false), 1500);
+        let attempts = 0;
+        const delays = [2000, 4000, 7000, 12000];
+
+        const pollForFinalResults = async () => {
+          await loadContestData(attempts > 0);
+          attempts++;
+          if (attempts < delays.length) {
+            setTimeout(pollForFinalResults, delays[attempts] - (attempts > 0 ? delays[attempts - 1] : 0));
+          }
+        };
+
+        setTimeout(pollForFinalResults, delays[0]);
       },
     }
   );
