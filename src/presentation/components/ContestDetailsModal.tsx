@@ -67,20 +67,20 @@ export const ContestDetailsModal: React.FC<ContestDetailsModalProps> = ({
     {
       enabled: wsEnabled,
       onContestEnd: () => {
-        loadContestData(true);
+        setTimeout(() => loadContestData(false), 1500);
       },
     }
   );
 
-  // Apply WebSocket data when it arrives
+  // Apply WebSocket data when it arrives — only while contest is still live
   useEffect(() => {
-    if (wsPerformance && wsConnected) {
+    if (wsPerformance && wsConnected && contest?.status === ContestStatus.LIVE) {
       setMyPerformance(wsPerformance);
     }
   }, [wsPerformance, wsConnected]);
 
   useEffect(() => {
-    if (wsLeaderboard && wsConnected) {
+    if (wsLeaderboard && wsConnected && contest?.status === ContestStatus.LIVE) {
       setLeaderboard(wsLeaderboard.slice(0, 5));
     }
   }, [wsLeaderboard, wsConnected]);

@@ -63,23 +63,24 @@ export default function LeaderboardScreen() {
     {
       enabled: isContestLive,
       onContestEnd: () => {
-        // Contest completed — reload via REST for final results
-        loadData(true);
+        // Contest completed — do a full non-silent reload for final results
+        // Small delay to allow backend to finalize before fetching
+        setTimeout(() => loadData(false), 1500);
       },
     }
   );
 
-  // Apply WebSocket leaderboard data
+  // Apply WebSocket leaderboard data — only while contest is still live
   useEffect(() => {
-    if (wsLeaderboard && wsConnected) {
+    if (wsLeaderboard && wsConnected && contest?.status === ContestStatus.LIVE) {
       setLeaderboard(wsLeaderboard);
       if (wsLastUpdate) setLastUpdated(wsLastUpdate);
     }
   }, [wsLeaderboard, wsConnected, wsLastUpdate]);
 
-  // Apply WebSocket performance data
+  // Apply WebSocket performance data — only while contest is still live
   useEffect(() => {
-    if (wsPerformance && wsConnected) {
+    if (wsPerformance && wsConnected && contest?.status === ContestStatus.LIVE) {
       setMyPerformance(wsPerformance);
     }
   }, [wsPerformance, wsConnected]);
