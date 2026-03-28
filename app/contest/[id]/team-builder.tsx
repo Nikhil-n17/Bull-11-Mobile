@@ -101,7 +101,7 @@ export default function TeamBuilderScreen() {
         const existingStocks: Stock[] = entry.stocks.map((cs: any) => ({
           symbol: cs.symbol,
           name: cs.symbol,
-          exchange: Exchange.NSE,
+          exchange: (cs.exchange as Exchange) || Exchange.NSE,
           instrumentToken: 0,
           lastPrice: cs.currentPrice || cs.openingPrice || undefined,
           points: cs.points ?? 9,
@@ -110,7 +110,7 @@ export default function TeamBuilderScreen() {
         setSelectedStocks(existingStocks);
         setIsEditing(true);
         const captainStock = (entry.stocks as any[]).find((cs: any) => cs.captain === true);
-        if (captainStock) setCaptainSymbol(captainStock.symbol);
+        if (captainStock) setCaptainSymbol(captainStock.symbol.toUpperCase());
       }
     } catch {
       // No team yet — creating for the first time
@@ -168,7 +168,7 @@ export default function TeamBuilderScreen() {
   const handleSelectStock = (stock: Stock) => {
     setValidationError(null);
 
-    if (!stock || !stock.symbol || !stock.name || !stock.instrumentToken) {
+    if (!stock || !stock.symbol || !stock.name || stock.instrumentToken == null) {
       setValidationError('Invalid stock data');
       return;
     }
@@ -202,10 +202,11 @@ export default function TeamBuilderScreen() {
     setValidationError(null);
   };
 
-  // Captain can be toggled at any time (not gated on 5 stocks)
+  // Captain can be toggled at any time (not gated on 5 stocks); normalized to uppercase
   const handleToggleCaptain = (symbol: string) => {
+    const upper = symbol.toUpperCase();
     setCaptainSymbol(prev =>
-      prev?.toUpperCase() === symbol.toUpperCase() ? null : symbol
+      prev === upper ? null : upper
     );
   };
 

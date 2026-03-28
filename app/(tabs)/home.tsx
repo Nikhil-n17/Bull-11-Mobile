@@ -190,11 +190,15 @@ export default function HomeScreen() {
         teamName: teamName.trim(),
       });
 
+      // Optimistically update joined set so the button flips immediately
+      setJoinedContestIds(prev => new Set(prev).add(selectedContest.id));
+
       // Navigate to team builder
       setShowJoinModal(false);
       router.push(`/contest/${selectedContest.id}/team-builder` as any);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to join contest';
+      setShowJoinModal(false);
       setError(errorMessage);
     } finally {
       setJoining(false);
