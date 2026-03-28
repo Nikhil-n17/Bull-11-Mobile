@@ -7,9 +7,9 @@ import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  Alert,
   TextInput,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {
   Box,
@@ -44,6 +44,7 @@ export default function RegisterScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState<PasswordValidationResult | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const {
     control,
@@ -74,28 +75,28 @@ export default function RegisterScreen() {
   };
 
   const onSubmit = async (data: RegisterFormData) => {
+    // Check terms acceptance
+    if (!termsAccepted) {
+      setErrorMessage('Please accept the Terms of Service and Privacy Policy');
+      return;
+    }
+
+    // Validate password strength
+    const validation = PasswordValidator.validate(data.password);
+    if (!validation.isValid) {
+      setErrorMessage(validation.errors.join('\n'));
+      return;
+    }
+
+    // Check password match
+    if (data.password !== data.confirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setErrorMessage(null);
-
-      // Check terms acceptance
-      if (!termsAccepted) {
-        setErrorMessage('Please accept the Terms of Service and Privacy Policy');
-        return;
-      }
-
-      // Validate password strength
-      const validation = PasswordValidator.validate(data.password);
-      if (!validation.isValid) {
-        setErrorMessage(validation.errors.join('\n'));
-        return;
-      }
-
-      // Check password match
-      if (data.password !== data.confirmPassword) {
-        setErrorMessage('Passwords do not match');
-        return;
-      }
 
       await register({
         name: data.name.trim(),
@@ -103,26 +104,43 @@ export default function RegisterScreen() {
         password: data.password,
       });
 
-      // Registration successful - redirect to login
-      Alert.alert(
-        'Account Created! 🎉',
-        'Your account has been created successfully. Please login to continue.',
-        [
-          {
-            text: 'Go to Login',
-            onPress: () => router.replace('/auth/login' as any),
-          },
-        ]
-      );
+      // Show success screen and auto-redirect after 3 seconds
+      setRegistrationSuccess(true);
+      setTimeout(() => {
+        router.replace('/auth/login' as any);
+      }, 3000);
 
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed. Please try again.';
       setErrorMessage(message);
-      Alert.alert('Registration Failed', message);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (registrationSuccess) {
+    return (
+      <Box flex={1} bg="coolGray.50" safeArea justifyContent="center" alignItems="center" px={6}>
+        <VStack alignItems="center" space={6}>
+          <Box bg="green.700" p={6} borderRadius="full" shadow={4}>
+            <Icon as={MaterialIcons} name="check-circle" size="4xl" color="white" />
+          </Box>
+          <VStack alignItems="center" space={2}>
+            <Text fontSize="2xl" fontWeight="bold" color="coolGray.800" textAlign="center">
+              Account Created!
+            </Text>
+            <Text fontSize="md" color="coolGray.600" textAlign="center">
+              Your account has been created successfully.
+            </Text>
+            <Text fontSize="sm" color="coolGray.500" textAlign="center" mt={1}>
+              Redirecting you to login...
+            </Text>
+          </VStack>
+          <ActivityIndicator color="#15803d" size="small" />
+        </VStack>
+      </Box>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

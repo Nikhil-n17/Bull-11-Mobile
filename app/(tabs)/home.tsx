@@ -3,7 +3,7 @@
  * Browse and join available contests
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Box, Text, VStack, HStack, Pressable, Center } from 'native-base';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Contest, ContestStatus } from '@/src/domain/entities/Contest';
 import { ContestCard } from '@/src/presentation/components/ContestCard';
 import { ErrorDisplay } from '@/src/presentation/components/common/ErrorDisplay';
@@ -62,10 +63,18 @@ export default function HomeScreen() {
     return () => pulse.stop();
   }, []);
 
-  // Load contests on mount
-  useEffect(() => {
-    loadContests();
-  }, []);
+  // Load contests on mount, and silently refresh whenever the tab is focused
+  const hasLoadedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasLoadedOnce.current) {
+        hasLoadedOnce.current = true;
+        loadContests();
+      } else {
+        loadContests(true); // silent refresh on re-focus
+      }
+    }, [])
+  );
 
   // Apply filters whenever contests or activeFilter changes
   useEffect(() => {

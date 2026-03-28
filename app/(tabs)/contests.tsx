@@ -300,15 +300,19 @@ export default function ContestsScreen() {
       await container.withdrawFromContestUseCase.execute({
         contestId: entry.contestId,
       });
+      // Optimistically remove the entry from UI immediately
+      setEntries(prev => prev.filter(e => e.id !== entryToWithdraw));
       setShowWithdrawConfirm(false);
-      await loadMyContests();
+      setEntryToWithdraw(null);
+      setWithdrawing(false);
+      // Silent background refresh to sync with server
+      loadMyContests(true);
     } catch (err) {
       setShowWithdrawConfirm(false);
+      setEntryToWithdraw(null);
+      setWithdrawing(false);
       const errorMessage = err instanceof Error ? err.message : 'Failed to withdraw';
       Alert.alert('Withdraw Failed', errorMessage);
-    } finally {
-      setWithdrawing(false);
-      setEntryToWithdraw(null);
     }
   };
 
