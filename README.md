@@ -14,7 +14,7 @@
 </div>
 
 ---
-
+ 
 ## Overview
 
 Bull-11 is a **Dream11-style fantasy game for the stock market**. Players join contests, pick stocks, and compete based on real-time NSE/BSE price movements. Built with **Clean Architecture** on React Native (Expo) with a Spring Boot backend.
